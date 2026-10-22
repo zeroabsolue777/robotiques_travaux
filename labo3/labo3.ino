@@ -149,7 +149,7 @@ void goStraight(short speed = 100, bool firstRun = false) {
   encoderRight.setMotorPwm(-speed - output);
 }
 
-// PIVOT AVEC INTEGRALE - ne bloque plus
+// PIVOT AVEC INTEGRALE
 bool spin(short vitesseMax, int targetAngle, bool firstRun = false) {
   static double zAngleGoal = 0, integrale = 0, lastAngle = 0;
   static unsigned long debutStable = 0, lastTime = 0, sansMouvement = 0;
