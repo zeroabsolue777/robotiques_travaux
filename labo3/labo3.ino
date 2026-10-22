@@ -235,11 +235,76 @@ void gererPivot2(unsigned long ct) {
     state = SEGMENT3;
   }
 }
-void gererSegment3(unsigned long ct) {}
-void gererPivot3(unsigned long ct) {}
-void gererFin(unsigned long ct) {
+
+void gererSegment3(unsigned long ct){
+  static bool firstTime = true;
+  static float distanceDebutSeg3 = 0;
+
+  if(firstTime){
+    Serial.println("Entrée: SEGMENT3");
+    firstTime = false;
+    distanceDebutSeg3 = distanceParcourue;
+    goStraight(vitesse, true);
+  }
+
+  float faite = distanceParcourue - distanceDebutSeg3;
+
+  // DEL : barre 1-7 + LED 9 fixe
+  led.setColor(0,0,0);
+  int nb = map(faite, 0, distanceX, 0, 7);
+  nb = constrain(nb,0,7);
+  for(int i=1; i<=nb; i++) led.setColor(i, 0, 255, 0);
+  led.setColor(9, 0, 255, 0);
+  led.show();
+
+  goStraight(vitesse);
+
+  if(faite >= distanceX){
+    Serial.println("Sortie: SEG3 -> PIVOT3");
+    offMotors();
+    firstTime = true;
+    precedentState = SEGMENT3;
+    state = PIVOT3;
+  }
+}
+
+void gererPivot3(unsigned long ct){
+  static bool firstTime = true;
+  const int angleCible = 180; 
+  const short sens = 80; 
+
+  if(firstTime){
+    Serial.println("Entrée: PIVOT3 DROITE 180");
+    firstTime = false;
+    spin(sens, angleCible, true);
+  }
+
+  // LED 8 fixe pour PIVOT3
+  led.setColor(0,0,0);
+  led.setColor(8, 0, 255, 0);
+  led.show();
+  
+  if(spin(sens, angleCible)){
+    Serial.println("Sortie: PIVOT3 -> FIN");
+    offMotors();
+    firstTime = true;
+    precedentState = PIVOT3;
+    state = FIN;
+  }
+}
+
+void gererFin(unsigned long ct){
+  static bool done = false;
+  if(!done){
+    Serial.println("=== PARCOURS TERMINE ===");
+    Serial.print("Distance totale: ");
+    Serial.println(distanceParcourue);
+    done = true;
+  }
   offMotors();
-  offLeds();
+  // Toutes les LED vertes à la fin
+  led.setColor(0,0,255,0);
+  led.show();
 }
 void gererRetour(unsigned long ct) {}
 
