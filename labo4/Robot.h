@@ -4,10 +4,15 @@
 
 #include <Arduino.h>
 #include "Configuration.h"
+#include "Calibration.h"
 
 void initialiserLab3();
 void actualiserLab3();
 bool lab3EstTermine();
+
+void commencerRotationCalibration();
+bool actualiserRotationCalibration();
+void arreterRotationCalibration();
 
 // Les 7 états 
 enum EtatRobot {
@@ -26,6 +31,9 @@ private:
 
     EtatRobot etatActuel;
     EtatRobot etatPrecedent;
+   
+    Calibration calibration;
+    bool calibrationEnCours;
 
     unsigned long tempsDebut;
 

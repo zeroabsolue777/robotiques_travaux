@@ -28,6 +28,7 @@ private:
 
      static const int CHIFFRE_DA = 6;
     const int SENS_PIVOT;
+    unsigned long debutRotationCalibration;
 
     float distanceX;
     float distanceY;
@@ -45,6 +46,11 @@ private:
     float distanceSeg3;
 
     float distanceDepartUltrason;
+    float angleDebutCalibration;
+    float anglePrecedentCalibration;
+    float angleCumuleCalibration;
+    bool rotationCalibrationActive;
+    bool rotationCalibrationReussie;
 
     // ETATS INTERNES DU LAB3
 
@@ -179,10 +185,12 @@ public:
     Lab3();
 
     void initialiser();
-
     void actualiser();
-
     bool estTermine();
+    void commencerRotationCalibration();
+    bool actualiserRotationCalibration();
+    void arreterRotationCalibration();
+    bool calibrationRotationReussie();
 
 };
 

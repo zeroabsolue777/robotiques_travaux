@@ -19,7 +19,11 @@ Lab3::Lab3()
       vitesseLente(55),
       vitesseApproche(35),
       vitessePivot(60),
-      tolerance(2) {
+      tolerance(2),
+      angleDebutCalibration(0),
+      anglePrecedentCalibration(0),
+      angleCumuleCalibration (0),
+      rotationCalibrationActive(false) {
 
     instance = this;
 
@@ -976,4 +980,113 @@ void actualiserLab3() {
 
 bool lab3EstTermine() {
     return instanceLab3.estTermine();
+}
+
+void Lab3::commencerRotationCalibration() {
+    rotationCalibrationReussie = false;
+
+    gyro.begin();
+    gyro.update();
+
+    angleDebutCalibration = gyro.getAngleZ();
+    anglePrecedentCalibration = angleDebutCalibration;
+    angleCumuleCalibration = 0;
+
+    debutRotationCalibration = millis();
+    rotationCalibrationActive = false;
+
+    // Vérifier que le gyroscope donne une valeur valide
+    if (isnan(angleDebutCalibration) || isinf(angleDebutCalibration)) {
+        Serial.println("ERREUR : gyroscope invalide");
+        offMotors();
+        return;
+    }
+
+    rotationCalibrationActive = true;
+
+    Serial.println("Rotation calibration demarree");
+}
+
+
+bool Lab3::actualiserRotationCalibration() {
+    if (!rotationCalibrationActive) {
+        return true;
+    }
+
+    gyro.update();
+    encoderRight.loop();
+    encoderLeft.loop();
+
+    float angleActuel = gyro.getAngleZ();
+
+    if (isnan(angleActuel) || isinf(angleActuel)) {
+    Serial.println("ERREUR : lecture gyroscope invalide");
+    arreterRotationCalibration();
+    return true;
+    }
+    float difference = angleActuel - anglePrecedentCalibration;
+
+    // Corriger le passage de +180 à -180
+    if (difference > 180.0f) {
+        difference -= 360.0f;
+    } else if (difference < -180.0f) {
+        difference += 360.0f;
+    }
+
+    angleCumuleCalibration += difference;
+    anglePrecedentCalibration = angleActuel;
+
+    // Affichage de diagnostic toutes les 200 ms
+    static unsigned long dernierAffichage = 0;
+
+    if (millis() - dernierAffichage >= 200) {
+        dernierAffichage = millis();
+
+        Serial.print("Angle gyro : ");
+        Serial.print(angleActuel);
+
+        Serial.print(" | Angle cumule : ");
+        Serial.println(angleCumuleCalibration);
+    }
+
+    // Arrêt après 360 degrés
+   if (fabs(angleCumuleCalibration) >= 360.0f) {
+    rotationCalibrationReussie = true;
+
+    Serial.println("Rotation 360 terminee");
+    arreterRotationCalibration();
+    return true;
+    }
+
+    // Sécurité : arrêt après 10 secondes
+    if (millis() - debutRotationCalibration >= 10000UL) {
+    rotationCalibrationReussie = false;
+
+    Serial.println("ERREUR : rotation trop longue");
+    arreterRotationCalibration();
+    return true;
+    }
+
+    encoderLeft.setMotorPwm(-60);
+    encoderRight.setMotorPwm(-60);
+
+    return false;
+}
+
+
+void Lab3::arreterRotationCalibration() {
+    offMotors();
+    rotationCalibrationActive = false;
+}
+
+void commencerRotationCalibration() {
+    instanceLab3.commencerRotationCalibration();
+}
+
+bool actualiserRotationCalibration() {
+    return instanceLab3.actualiserRotationCalibration();
+}
+
+void arreterRotationCalibration() {
+    instanceLab3.arreterRotationCalibration();
 }

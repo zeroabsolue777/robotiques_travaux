@@ -6,7 +6,8 @@ Robot::Robot()
     : etatActuel(ATTENTE),
       etatPrecedent(ATTENTE),
       tempsDebut(0),
-      estCalibre(false){
+      estCalibre(false),
+      calibrationEnCours(false){
 }
 
 // INITIALISATION
@@ -14,6 +15,7 @@ Robot::Robot()
 void Robot::initialiser() {
 
     Serial.begin(BAUD_RATE);
+    calibration.initialiser();
     changerEtat(BOOT);
 }
 
@@ -71,6 +73,15 @@ void Robot::changerEtat(EtatRobot nouvelEtat) {
 
         case CALIB:
             Serial.println("État : CALIB");
+
+            calibrationEnCours = calibration.estConnecte();
+
+            if (calibrationEnCours) {
+                calibration.commencer();
+                commencerRotationCalibration();
+            } else {
+                Serial.println("Calibration impossible : LyneTracker absent");
+            }
             break;
 
         case SUIVRE_LIGNE:
@@ -96,20 +107,13 @@ void Robot::executerBoot() {
 }
 
 void Robot::executerAttente() {
+    static bool testCalibrationEffectue = false;
 
-    // Le robot attend une commande Bluetooth.
-    // Nous ajouterons la réception Bluetooth
-    // dans une prochaine étape.
-
+    if (!testCalibrationEffectue) {
+        testCalibrationEffectue = true;
+        changerEtat(CALIB);
+    }
 }
-// void Robot::executerAttente() {
-//     static bool testLab3Effectue = false;
-
-//     if (!testLab3Effectue) {
-//         testLab3Effectue = true;
-//         changerEtat(LAB3);
-//     }
-// }
 
 void Robot::executerLab3() {
     actualiserLab3();
@@ -120,7 +124,24 @@ void Robot::executerLab3() {
 }
 
 void Robot::executerCalibration() {
-    // Calibration des capteurs plus tard.
+    if (!calibrationEnCours) {
+        changerEtat(ATTENTE);
+        return;
+    }
+
+    // Lire les capteurs pendant la rotation
+    calibration.calibrer();
+
+    // Continuer la rotation jusqu'à 360 degrés
+    if (actualiserRotationCalibration()) {
+        calibration.calibrer();
+        calibration.terminer();
+
+        estCalibre = calibration.estCalibre();
+        calibrationEnCours = false;
+
+        changerEtat(ATTENTE);
+    }
 }
 
 void Robot::executerSuiviLigne() {
