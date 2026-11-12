@@ -18,7 +18,9 @@ bool Calibration::initialiser() {
     if (connecte) {
         Serial.println("LyneTracker connecte !");
     } else {
-        Serial.println("Erreur de connexion au LyneTracker");
+        Serial.println(
+            "Erreur de connexion au LyneTracker"
+        );
     }
 
     return connecte;
@@ -123,4 +125,12 @@ int Calibration::getMax(int index) {
     }
 
     return valeursMax[index];
+}
+
+int Calibration::getValeur(int index) {
+    if (index < 0 || index >= NB_IR) {
+        return 0;
+    }
+
+    return valeurs[index];
 }

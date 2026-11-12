@@ -1,20 +1,31 @@
-
 #ifndef ROBOT_H
 #define ROBOT_H
 
 #include <Arduino.h>
 #include "Configuration.h"
 #include "Calibration.h"
+#include "SuiviLigne.h"
 
 void initialiserLab3();
 void actualiserLab3();
 bool lab3EstTermine();
+void arreterLab3();
 
 void commencerRotationCalibration();
 bool actualiserRotationCalibration();
 void arreterRotationCalibration();
+bool rotationCalibrationReussie();
 
-// Les 7 états 
+void commanderMoteursLigne(int vitesseGauche, int vitesseDroite);
+void arreterMoteursLigne();
+void commencerPivot180();
+bool actualiserPivot180();
+void arreterPivot180();
+
+void afficherCouleurEtat(int rouge, int vert, int bleu);
+void eteindreLedsEtat();
+void initialiserLedsEtat();
+
 enum EtatRobot {
     BOOT,
     ATTENTE,
@@ -26,23 +37,29 @@ enum EtatRobot {
 };
 
 class Robot {
-
 private:
-
     EtatRobot etatActuel;
     EtatRobot etatPrecedent;
-   
+    unsigned long tempsDebut;
+    void changerEtat(EtatRobot nouvelEtat);
+
     Calibration calibration;
     bool calibrationEnCours;
-
-    unsigned long tempsDebut;
-
     bool estCalibre;
+    SuiviLigne suiviLigne;
+    unsigned long dernierAffichageLigne;
 
-    void changerEtat(EtatRobot nouvelEtat);
-    
+    enum PhaseSuivi { AVANCER_LIGNE, PIVOTER_180 };
+    PhaseSuivi phaseSuivi;
+    unsigned long debutPerteLigne;
+    unsigned long dernierClignotement;
+    bool ledsAllumees;
 
-    // Exécution des états
+    void actualiserClignotement(int rouge, int vert, int bleu);
+    String commandeRecue;
+    void lireCommandes();
+    void traiterCommande(String commande);
+
     void executerBoot();
     void executerAttente();
     void executerLab3();
@@ -52,12 +69,9 @@ private:
     void executerNonCalib();
 
 public:
-
     Robot();
-
     void initialiser();
     void actualiser();
-
 };
 
 #endif

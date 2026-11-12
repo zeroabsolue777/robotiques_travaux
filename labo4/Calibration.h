@@ -36,6 +36,7 @@ public:
 
     int getMin(int index);
     int getMax(int index);
+    int getValeur(int index);
 };
 
 #endif

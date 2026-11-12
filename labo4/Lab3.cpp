@@ -141,10 +141,7 @@ void Lab3::leftEncoderInterrupt() {
     }
 }
 
-
-// ==========================================
 // CONFIGURATION DES ENCODEURS
-// ==========================================
 
 void Lab3::encoderConfig() {
 
@@ -179,10 +176,7 @@ void Lab3::encoderConfig() {
     TCCR2B = _BV(CS21);
 }
 
-
-// ==========================================
 // TACHES MATERIELLES
-// ==========================================
 
 void Lab3::gyroTask() {
 
@@ -197,9 +191,7 @@ void Lab3::encodersTask() {
 }
 
 
-// ==========================================
 // ARRET DES MOTEURS ET LEDS
-// ==========================================
 
 void Lab3::offMotors() {
 
@@ -215,16 +207,22 @@ void Lab3::offLeds() {
 }
 
 
+void Lab3::arreterLab3() {
+    offMotors();
+    rotationCalibrationActive = false;
+    pivot180Actif = false;
+    state = FIN;
+    premierFin = false;
+    offLeds();
+}
+
 void Lab3::arret() {
 
     // Arret non bloquant
     offMotors();
 }
 
-
-// ==========================================
 // MESURE DES DISTANCES AVEC ENCODEURS
-// ==========================================
 
 void Lab3::debuterMesure() {
 
@@ -244,9 +242,7 @@ float Lab3::distanceFaite() {
 }
 
 
-// ==========================================
 // CAPTEUR ULTRASON
-// ==========================================
 
 int Lab3::retournerDistance(unsigned long ct) {
 
@@ -280,10 +276,7 @@ double Lab3::ecartAngle(double a, double b) {
     return e;
 }
 
-
-// ==========================================
 // DEPLACEMENT EN LIGNE DROITE AVEC PID
-// ==========================================
 
 void Lab3::goStraight(short speed, bool firstRun) {
 
@@ -339,9 +332,7 @@ void Lab3::goStraight(short speed, bool firstRun) {
 }
 
 
-// ==========================================
 // PIVOT AVEC PID
-// ==========================================
 
 bool Lab3::spin(short vitesseMax, int targetAngle, bool firstRun) {
 
@@ -437,9 +428,7 @@ bool Lab3::spin(short vitesseMax, int targetAngle, bool firstRun) {
 }
 
 
-// ==========================================
 // BARRE DE PROGRESSION LED
-// ==========================================
 
 int Lab3::barre(float faite, float total) {
 
@@ -455,9 +444,7 @@ int Lab3::barre(float faite, float total) {
 }
 
 
-// ==========================================
 // MISE A JOUR DES LEDS
-// ==========================================
 
 void Lab3::majLeds(int nb) {
 
@@ -490,10 +477,7 @@ void Lab3::majLeds(int nb) {
     led.show();
 }
 
-
-// ==========================================
 // LEDS ARC-EN-CIEL
-// ==========================================
 
 void Lab3::rainbowLeds(unsigned long ct) {
 
@@ -543,10 +527,7 @@ void Lab3::rainbowLeds(unsigned long ct) {
     led.show();
 }
 
-
-// ==========================================
 // ETAT DEPART
-// ==========================================
 
 void Lab3::gererDepart(unsigned long ct) {
 
@@ -586,11 +567,6 @@ void Lab3::gererDepart(unsigned long ct) {
     }
 }
 
-
-// ==========================================
-// SEGMENT 1
-// ==========================================
-
 void Lab3::gererSegment1(unsigned long ct) {
 
     if (premierSegment1) {
@@ -623,10 +599,6 @@ void Lab3::gererSegment1(unsigned long ct) {
     }
 }
 
-
-// ==========================================
-// SEGMENT 2
-// ==========================================
 
 void Lab3::gererSegment2(unsigned long ct) {
 
@@ -675,11 +647,6 @@ void Lab3::gererSegment2(unsigned long ct) {
     }
 }
 
-
-// ==========================================
-// SEGMENT 3
-// ==========================================
-
 void Lab3::gererSegment3(unsigned long ct) {
 
     if (premierSegment3) {
@@ -711,11 +678,6 @@ void Lab3::gererSegment3(unsigned long ct) {
         state = PIVOT;
     }
 }
-
-
-// ==========================================
-// PIVOT
-// ==========================================
 
 void Lab3::gererPivot(unsigned long ct) {
 
@@ -770,11 +732,6 @@ void Lab3::gererPivot(unsigned long ct) {
     }
 }
 
-
-// ==========================================
-// RETOUR SEGMENT 3
-// ==========================================
-
 void Lab3::gererRetourSeg3(unsigned long ct) {
 
     if (premierRetourSeg3) {
@@ -800,11 +757,6 @@ void Lab3::gererRetourSeg3(unsigned long ct) {
         state = PIVOT;
     }
 }
-
-
-// ==========================================
-// RETOUR SEGMENT 2
-// ==========================================
 
 void Lab3::gererRetourSeg2(unsigned long ct) {
 
@@ -832,11 +784,6 @@ void Lab3::gererRetourSeg2(unsigned long ct) {
     }
 }
 
-
-// ==========================================
-// RETOUR SEGMENT 1
-// ==========================================
-
 void Lab3::gererRetourSeg1(unsigned long ct) {
 
     if (premierRetourSeg1) {
@@ -861,11 +808,6 @@ void Lab3::gererRetourSeg1(unsigned long ct) {
         state = FIN;
     }
 }
-
-
-// ==========================================
-// FIN
-// ==========================================
 
 void Lab3::gererFin(unsigned long ct) {
 
@@ -900,10 +842,7 @@ void Lab3::gererFin(unsigned long ct) {
     }
 }
 
-
-// ==========================================
 // MACHINE A ETATS INTERNE DU LAB3
-// ==========================================
 
 void Lab3::manageState(unsigned long ct) {
 
@@ -947,11 +886,6 @@ void Lab3::manageState(unsigned long ct) {
     }
 }
 
-
-// ==========================================
-// ACTUALISATION DU LAB3
-// ==========================================
-
 void Lab3::actualiser() {
 
     unsigned long ct = millis();
@@ -968,7 +902,109 @@ bool Lab3::estTermine() {
     return state == FIN;
 }
 
+void Lab3::commanderMoteursLigne(int vitesseGauche, int vitesseDroite) {
+    encoderLeft.loop();
+    encoderRight.loop();
+
+    // Même convention de signes que goStraight() du LAB3
+    encoderLeft.setMotorPwm(vitesseGauche);
+    encoderRight.setMotorPwm(-vitesseDroite);
+}
+
+void Lab3::arreterMoteursLigne() {
+    offMotors();
+}
+
+void Lab3::commencerPivot180() {
+    gyro.begin();
+    gyro.update();
+
+    angleDebutPivot180 = gyro.getAngleZ();
+    pivot180Actif = true;
+
+    offMotors();
+
+    Serial.println("Pivot 180 demarre");
+}
+
+bool Lab3::actualiserPivot180() {
+    if (!pivot180Actif) {
+        return true;
+    }
+
+    gyro.update();
+    encoderLeft.loop();
+    encoderRight.loop();
+
+    float angleActuel = gyro.getAngleZ();
+    float angleParcouru = fabs(
+        angleActuel - angleDebutPivot180
+    );
+
+    if (angleParcouru >= 180.0f) {
+        arreterPivot180();
+
+        Serial.println("Pivot 180 termine");
+        return true;
+    }
+
+    // Rotation sur place
+    encoderLeft.setMotorPwm(-60);
+    encoderRight.setMotorPwm(-60);
+
+    return false;
+}
+
+void Lab3::arreterPivot180() {
+    offMotors();
+    pivot180Actif = false;
+}
+
+void Lab3::afficherCouleurEtat(int rouge, int vert, int bleu) {
+    for (int i = 1; i <= LEDNUM; i++) {
+        led.setColor(i, rouge, vert, bleu);
+    }
+
+    led.show();
+}
+
+void Lab3::eteindreLedsEtat() {
+    afficherCouleurEtat(0, 0, 0);
+}
+
+bool Lab3::calibrationRotationReussie() {
+    return rotationCalibrationReussie;
+}
+
+void Lab3::initialiserLedsEtat() {
+    led.setpin(LED_PIN);
+    led.setNumber(LEDNUM);
+    led.setColor(0, 0, 0, 0);
+    led.show();
+
+    Serial.println("DEL initialisees");
+}
 static Lab3 instanceLab3;
+
+void initialiserLedsEtat() {
+    instanceLab3.initialiserLedsEtat();
+}
+
+bool rotationCalibrationReussie() {
+    return instanceLab3.calibrationRotationReussie();
+}
+
+void afficherCouleurEtat(int rouge, int vert, int bleu) {
+    instanceLab3.afficherCouleurEtat(rouge, vert, bleu);
+}
+
+void eteindreLedsEtat() {
+    instanceLab3.eteindreLedsEtat();
+}
+
+void arreterLab3() {
+    instanceLab3.arreterLab3();
+}
 
 void initialiserLab3() {
     instanceLab3.initialiser();
@@ -1089,4 +1125,24 @@ bool actualiserRotationCalibration() {
 
 void arreterRotationCalibration() {
     instanceLab3.arreterRotationCalibration();
+}
+
+void commanderMoteursLigne(int vitesseGauche, int vitesseDroite) {
+    instanceLab3.commanderMoteursLigne(vitesseGauche, vitesseDroite);
+}
+
+void arreterMoteursLigne() {
+    instanceLab3.arreterMoteursLigne();
+}
+
+void commencerPivot180() {
+    instanceLab3.commencerPivot180();
+}
+
+bool actualiserPivot180() {
+    return instanceLab3.actualiserPivot180();
+}
+
+void arreterPivot180() {
+    instanceLab3.arreterPivot180();
 }
